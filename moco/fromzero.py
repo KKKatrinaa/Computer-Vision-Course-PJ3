@@ -37,7 +37,7 @@ def main():
     optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
 
-    writer = SummaryWriter(log_dir='./logs_supervised')
+    writer = SummaryWriter(log_dir='./logs_fromzero')
 
     # 训练过程
     num_epochs = 100
