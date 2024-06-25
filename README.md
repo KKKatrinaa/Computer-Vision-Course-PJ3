@@ -26,3 +26,7 @@
 
 </tbody></table>
 
+### Nerf
+Please see <a href="https://github.com/ashawkey/torch-ngp">this repo</a> and follow the instructions in it.
+
+The configuration of the environment of **colmap** is referred to <a href="https://zhuanlan.zhihu.com/p/397053413">this blog</a>.
