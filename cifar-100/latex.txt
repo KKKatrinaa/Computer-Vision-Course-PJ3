@@ -1,0 +1,192 @@
+\documentclass{article}
+\usepackage{ctex}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{mathptmx} % 使用 Times 字体
+\usepackage{geometry} % 设置页面布局
+\geometry{a4paper,scale=0.8}
+\usepackage{graphicx} % 引入图像
+\usepackage{subfigure} % 使用子图像
+\usepackage{amsmath} % 数学公式
+\usepackage{amsfonts} % 数学字体
+\usepackage{amssymb} % 数学符号
+\usepackage{bm} % 加粗数学符号
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{float} 
+
+\title{CIFAR-100数据集上基于Transformer和CNN的图像分类}
+\date{}
+\begin{document}
+
+\maketitle
+
+\section{介绍}
+\label{sec:intro}
+本次实验旨在比较基于卷积神经网络（CNN）和Transformer架构的图像分类模型在CIFAR-100数据集上的性能。我们选择ResNet-34和ViT-Small作为模型结构，因它们具有相近的参数量，便于进行公平的比较。
+
+ResNet-34是一种经典的卷积神经网络结构，通过引入残差连接解决了深层网络训练中的退化问题，使得网络能够更深层次地学习特征。而ViT-Small（Vision Transformer）则是Transformer架构在计算机视觉领域的应用，它通过将图像划分为多个patch，类似于NLP中的词嵌入，然后使用标准的Transformer编码器进行处理。
+
+为了提升模型在CIFAR-100数据集上的性能，我们将采用数据增强的方法，包括但不限于CutMix。这种方法通过将训练图像中的部分区域与其他图像进行混合，有效地增加了数据的多样性，进而提高了模型的泛化能力。
+
+
+\section{模型设计}
+\label{sec:model}
+\subsection{CNN模型}
+本次实验选择了ResNet-34作为CNN模型。ResNet-34是一种经典的卷积神经网络，通过引入残差连接解决了深层网络训练中的退化问题。该模型包含34个层，其中包括卷积层、批归一化层、激活层和池化层。在输出层，加入了一个全连接层，使其能够输出CIFAR-100数据集的100个类别。
+
+\subsection{Transformer模型}
+Transformer模型选择了ViT-Small（Vision Transformer Small Patch16 224）作为实验模型。ViT-Small模型通过将输入图像划分为多个16x16的patch，并将每个patch嵌入到一个线性层中，生成固定长度的序列。然后，这些序列通过标准的Transformer编码器进行处理，最终在输出层输出100个类别。ViT-Small模型结构简单且高效，适合用于图像分类任务。
+
+此外，因为实验中发现未预训练过的此模型效果较差，所以也使用预训练过后的此模型进行了实验。
+
+\section{实验设置}
+\label{sec:setup}
+
+\subsection{数据集}
+CIFAR-100数据集包含60000张32x32的彩色图像，共有100个类别。每个类别有600张图像，其中500张用于训练，100张用于测试。因此，训练集包含50000张图像，测试集包含10000张图像。数据集已经按照训练集和测试集进行了划分，本实验直接使用这些划分进行训练和测试。
+
+\subsection{训练策略}
+在本次实验中，ResNet-34和ViT-Small模型使用了相同的数据增强策略和训练参数，以确保比较的公平性。具体训练策略如下：
+
+数据增强：使用了包括CutMix和Mixup在内的数据增强方法，以及常规的数据增强方法，如随机水平翻转、颜色抖动（亮度、对比度、饱和度和色调调整）、随机擦除和标准化处理。
+
+训练参数：epoch为100，batch size为128。损失函数使用交叉熵损失（CrossEntropyLoss），优化器使用AdamW，学习率为0.001，权重衰减为1e-4。学习率调度器：StepLR，步长为30，衰减率为0.1。评价指标是训练和验证过程中的损失（Loss）和准确率（Accuracy）。
+
+\subsection{数据增强方法介绍}
+
+CutMix：CutMix是一种数据增强方法，它通过在图像中随机剪切一个矩形区域，并用另一张图像的相应区域填充来生成新的训练样本。这样可以使模型更好地学习不同图像之间的特征组合，提高模型的鲁棒性。
+
+Mixup：Mixup是一种将两张图像按照一定比例混合的数据增强方法。通过对两张图像及其标签进行线性组合，可以生成新的训练样本，增加数据的多样性，从而提升模型的泛化能力。
+
+常规数据增强：包括随机水平翻转、颜色抖动（亮度、对比度、饱和度和色调调整）、随机擦除以及标准化处理。这些方法能够进一步丰富训练数据的变化，提高模型对不同场景的适应能力。
+
+
+\section{实验结果}
+\label{sec:results}
+\subsection{训练过程可视化}
+本次实验中进行了多次模型训练，挑选了四次实验的结果进行展示。包括：resnet34没有进行数据增强的训练结果，resnet34进行了数据增强的训练结果，未预训练的数据增强的vit-small的训练结果，预训练的数据增强的vit-small的训练结果。
+
+
+\begin{figure}[H]
+    \centering
+    \subfigure[训练集Loss曲线]{
+        \includegraphics[width=0.45\textwidth]{res1_tl.png}
+        \label{fig:train_loss}
+    }
+    \subfigure[训练集Accuracy曲线]{
+        \includegraphics[width=0.45\textwidth]{res1_ta.png}
+        \label{fig:val_acc}
+    }
+    \subfigure[测试集Loss曲线]{
+    \includegraphics[width=0.45\textwidth]{res1_vl.png}
+    \label{fig:train_loss}
+    }
+    \subfigure[测试集Accuracy曲线]{
+        \includegraphics[width=0.45\textwidth]{res1_va.png}
+        \label{fig:val_acc}
+    }
+    \caption{未数据增强的resnet34}
+    \label{fig:training_curves}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \subfigure[训练集Loss曲线]{
+        \includegraphics[width=0.45\textwidth]{res2_tl.png}
+        \label{fig:train_loss}
+    }
+    \subfigure[训练集Accuracy曲线]{
+        \includegraphics[width=0.45\textwidth]{res2_ta.png}
+        \label{fig:val_acc}
+    }
+    \subfigure[测试集Loss曲线]{
+    \includegraphics[width=0.45\textwidth]{res2_vl.png}
+    \label{fig:train_loss}
+    }
+    \subfigure[测试集Accuracy曲线]{
+        \includegraphics[width=0.45\textwidth]{res2_va.png}
+        \label{fig:val_acc}
+    }
+    \caption{数据增强后的resnet34}
+    \label{fig:training_curves}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \subfigure[训练集Loss曲线]{
+        \includegraphics[width=0.45\textwidth]{vit1_tl.png}
+        \label{fig:train_loss}
+    }
+    \subfigure[训练集Accuracy曲线]{
+        \includegraphics[width=0.45\textwidth]{vit1_ta.png}
+        \label{fig:val_acc}
+    }
+    \subfigure[测试集Loss曲线]{
+    \includegraphics[width=0.45\textwidth]{vit1_vl.png}
+    \label{fig:train_loss}
+    }
+    \subfigure[测试集Accuracy曲线]{
+        \includegraphics[width=0.45\textwidth]{vit1_va.png}
+        \label{fig:val_acc}
+    }
+    \caption{未预训练的vit-small}
+    \label{fig:training_curves}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \subfigure[训练集Loss曲线]{
+        \includegraphics[width=0.45\textwidth]{vit2_tl.png}
+        \label{fig:train_loss}
+    }
+    \subfigure[训练集Accuracy曲线]{
+        \includegraphics[width=0.45\textwidth]{vit2_ta.png}
+        \label{fig:val_acc}
+    }
+    \subfigure[测试集Loss曲线]{
+    \includegraphics[width=0.45\textwidth]{vit2_vl.png}
+    \label{fig:train_loss}
+    }
+    \subfigure[测试集Accuracy曲线]{
+        \includegraphics[width=0.45\textwidth]{vit2_va.png}
+        \label{fig:val_acc}
+    }
+    \caption{预训练的vit-small}
+    \label{fig:training_curves}
+\end{figure}
+
+
+\subsection{性能比较}
+经过数据增强处理的ResNet-34模型在测试集上表现出显著的性能提升，尽管其收敛速度有所减缓，准确率（accuracy）提升约5$\%$。相比之下，预训练的ViT-Small模型相较于未预训练模型表现出更为显著的性能提升，其在测试集上的准确率从40$\%$提高至75$\%$。在对比这两种模型时，可以观察到ResNet-34模型的收敛速度较慢，但最终准确率较高；而ViT-Small模型的收敛速度较快，但整体性能相对较差。
+\section{结论}
+\label{sec:conclusion}
+在对比ResNet-34和ViT-Small两种模型的性能时，可以得出以下总结：
+
+\begin{enumerate}
+    \item \textbf{ResNet-34模型}：
+    \begin{itemize}
+        \item \text{数据增强效果}：经过数据增强处理后，ResNet-34模型在测试集上的性能显著提升。
+        \item \text{收敛速度}：尽管收敛速度有所减缓，但最终准确率提升约5$\%$。
+        \item \text{总体表现}：在测试集上，ResNet-34模型的准确率较高，但训练时间较长。
+    \end{itemize}
+
+    \item \textbf{ViT-Small模型}：
+    \begin{itemize}
+        \item \text{预训练效果}：预训练的ViT-Small模型相比未预训练模型，性能提升更为显著，测试集上的准确率从40\%提高至75\%。
+        \item \text{收敛速度}：ViT-Small模型的收敛速度较快。
+        \item \text{总体表现}：尽管收敛速度较快，但ViT-Small模型的整体性能相对ResNet-34较差。
+    \end{itemize}
+\end{enumerate}
+
+综上所述，ResNet-34模型在准确率方面表现优异，适合对最终精度要求较高的任务；而ViT-Small模型在收敛速度方面具有优势，适合需要快速训练的应用场景。
+
+
+\section{附录}
+\label{sec:appendix}
+\subsection{实验代码和模型权重}
+\begin{itemize}
+    \item 实验代码的GitHub仓库链接：\url{}
+    \item 训练好的模型权重下载地址：\url{}
+\end{itemize}
+
+
+\end{document}
